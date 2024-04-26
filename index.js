@@ -12,7 +12,7 @@ app.use(cors());
 
 
 const uri =`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vrdje6l.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-console.log(uri)
+
 
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -28,6 +28,18 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    const ArtCollection=client.db('Art&CraftDB').collection('crafts')
+    
+
+    //create data
+
+    app.post('/crafts',async(req,res)=>{
+      const craft=req.body
+      console.log(craft)
+      const result=await ArtCollection.insertOne(craft)
+      res.send(result)
+    })
 
 
 
@@ -45,9 +57,9 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("Wooden craft");
+  res.send("Painting and Drawing");
 });
 
 app.listen(port, () => {
-  console.log(`Wooden craft listening on port ${port}`);
+  console.log(`Painting and Drawing server listening on port ${port}`);
 });
