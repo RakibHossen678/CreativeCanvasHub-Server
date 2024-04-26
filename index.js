@@ -30,7 +30,15 @@ async function run() {
     await client.connect();
 
     const ArtCollection=client.db('Art&CraftDB').collection('crafts')
+
+
+    //read data
     
+    app.get('/crafts',async(req,res)=>{
+      const cursor=ArtCollection.find()
+      const result=await cursor.toArray()
+      res.send(result)
+    })
 
     //create data
 
