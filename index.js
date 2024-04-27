@@ -47,7 +47,6 @@ async function run() {
     //read single data with email
 
     app.get("/myCart/:email", async (req, res) => {
-     
       const result = await ArtCollection.find({
         user_email: req.params.email,
       }).toArray();
@@ -70,6 +69,30 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await ArtCollection.deleteOne(query);
       res.send(result);
+    });
+
+    //update data
+    app.put("/crafts/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateCraft = req.body;
+      // console.log(id,updateCraft)
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateData = {
+        $set: {
+          photo:updateCraft.photo,
+          item_name:updateCraft.item_name,
+          category_name:updateCraft.category_name,
+          price:updateCraft.price,
+          rating:updateCraft.rating,
+          time:updateCraft.time,
+          customization:updateCraft.customization,
+          stock_status:updateCraft.stock_status,
+          description:updateCraft.description
+        },
+      };
+      const result=await ArtCollection.updateOne(filter,updateData,options)
+      res.send(result)
     });
 
     // Send a ping to confirm a successful connection
