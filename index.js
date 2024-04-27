@@ -47,7 +47,7 @@ async function run() {
     //read single data with email
 
     app.get("/myCart/:email", async (req, res) => {
-      console.log(req.params);
+     
       const result = await ArtCollection.find({
         user_email: req.params.email,
       }).toArray();
@@ -60,6 +60,15 @@ async function run() {
       const craft = req.body;
       console.log(craft);
       const result = await ArtCollection.insertOne(craft);
+      res.send(result);
+    });
+
+    //delete data
+
+    app.delete("/crafts/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await ArtCollection.deleteOne(query);
       res.send(result);
     });
 
