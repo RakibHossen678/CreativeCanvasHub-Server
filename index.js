@@ -23,7 +23,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const ArtCollection = client.db("Art&CraftDB").collection("crafts");
     const categoryNameCollection = client
@@ -118,9 +118,9 @@ async function run() {
 
     app.get("/categories/:catItem", async (req, res) => {
       const catItem = req.params.catItem;
-      const query = {item_name:catItem };
-      const result=await categoryCollection.findOne(query)
-      res.send(result)
+      const query = { item_name: catItem };
+      const result = await categoryCollection.findOne(query);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
