@@ -26,6 +26,10 @@ async function run() {
     await client.connect();
 
     const ArtCollection = client.db("Art&CraftDB").collection("crafts");
+    const categoryNameCollection = client
+      .db("Art&CraftDB")
+      .collection("categoryName");
+    const categoryCollection = client.db("Art&CraftDB").collection("category");
 
     //read data
 
@@ -80,18 +84,42 @@ async function run() {
       const options = { upsert: true };
       const updateData = {
         $set: {
-          photo:updateCraft.photo,
-          item_name:updateCraft.item_name,
-          category_name:updateCraft.category_name,
-          price:updateCraft.price,
-          rating:updateCraft.rating,
-          time:updateCraft.time,
-          customization:updateCraft.customization,
-          stock_status:updateCraft.stock_status,
-          description:updateCraft.description
+          photo: updateCraft.photo,
+          item_name: updateCraft.item_name,
+          category_name: updateCraft.category_name,
+          price: updateCraft.price,
+          rating: updateCraft.rating,
+          time: updateCraft.time,
+          customization: updateCraft.customization,
+          stock_status: updateCraft.stock_status,
+          description: updateCraft.description,
         },
       };
-      const result=await ArtCollection.updateOne(filter,updateData,options)
+      const result = await ArtCollection.updateOne(filter, updateData, options);
+      res.send(result);
+    });
+
+    // get category name data
+
+    app.get("/categoryName", async (req, res) => {
+      const cursor = categoryNameCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    //get category data
+
+    app.get("/category/:name", async (req, res) => {
+      const name = req.params.name;
+      const query = { subcategory_Name: name };
+      const result = await categoryCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/categories/:catItem", async (req, res) => {
+      const catItem = req.params.catItem;
+      const query = {item_name:catItem };
+      const result=await categoryCollection.findOne(query)
       res.send(result)
     });
 
