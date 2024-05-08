@@ -1,5 +1,7 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
+const cookieParser = require('cookie-parser')
+const jwt = require('jsonwebtoken');
 const cors = require("cors");
 require("dotenv").config();
 const app = express();
@@ -7,7 +9,35 @@ const port = process.env.port || 5000;
 
 // middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin:[
+    'http://localhost:5173',
+    'http://localhost:5174'
+  ],
+  credentials:true
+}));
+app.use(cookieParser())
+
+const logger=(req,res,next)=>{
+  console.log(req.method,req.url)
+  next()
+}
+
+const  verifyToken=(req,res,next)=>{
+  const token=req.cookies?.token
+  console.log('token in the middleware',token)
+  if(!token){
+    return res.status(401).send({message:'unauthorized access'})
+  }
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,(err,decoded)=>{
+    if(err){
+      return res.status(401).send({message:'unauthorized access'})
+    }
+    req.user=decoded
+    next()
+  })
+}
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vrdje6l.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -31,8 +61,24 @@ async function run() {
       .collection("categoryName");
     const categoryCollection = client.db("Art&CraftDB").collection("category");
 
-    //read data
+    //auth related api
+    app.post('/jwt',async(req,res)=>{
+      const user=req.body
+      console.log('user for token',user)
+      const token=jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{expiresIn:'1h'})
+      res.cookie('token',token,{
+        httpOnly:true,
+        secure:false,
+        sameSite:'strict'
+      }).send({success:true})
+    })
 
+    app.post('/logout',async(req,res)=>{
+      res.clearCookie('token',{maxAge:0}).send({success:true})
+    })
+
+    //services related api
+    //read data
     app.get("/crafts", async (req, res) => {
       const cursor = ArtCollection.find();
       const result = await cursor.toArray();
@@ -50,7 +96,13 @@ async function run() {
 
     //read single data with email
 
-    app.get("/myCart/:email", async (req, res) => {
+    app.get("/myCart/:email",logger,verifyToken, async (req, res) => {''
+      // console.log('cookies',req.cookies?.token)
+      console.log(req.params.email)
+      console.log(req.user)
+      if(req.params.email !== req.user.email){
+        return req.status(403).send({message:'forbidden access'})
+      }
       const result = await ArtCollection.find({
         user_email: req.params.email,
       }).toArray();
